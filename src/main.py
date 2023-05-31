@@ -1,6 +1,7 @@
 import redis.asyncio as redis
 import uvloop
 from pyrogram import Client, idle, filters
+from pyrogram.enums import ChatMembersFilter
 from pyrogram.errors import UserAlreadyParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQuery, Message
 
@@ -38,6 +39,7 @@ async def command_pin(client: Client, message: Message):
         "ChatSnitch is a chat management bot that automatically sends chat rules to new members "
         "and approves their participation."
         "\nCommands:"
+        "\n/set_role - set chat role"
         "\n/role - all chat role"
         "\n\nIf you have questions, ideas, want to help, or found a bug/typo, "
         "\nwrite to: @denis_malin",
@@ -99,11 +101,28 @@ async def role_message_handler(client: Client, message: Message):
     )
 
 
-@app.on_message(filters.command(['sed_role']))
+@app.on_message(filters=[filters.chat, filters.command(['set_role'])])
 async def role_message_handler(client: Client, message: Message):
     chat_id = message.chat.id
+    user_id = message.from_user.id
+    role_text = message.text[len('/set_role '):]
 
-    role_text = message.text[len('/sed_role '):]
+    if not message.chat:
+        await message.reply_text('This command only works in groups.')
+        return
+
+    if not role_text:
+        return await message.reply_text('Please, enter role text.')
+
+    admin_users = set()
+    async for u in client.get_chat_members(chat_id=chat_id, filter=ChatMembersFilter.ADMINISTRATORS, limit=100):
+        user = u.user
+        if not user.is_bot:
+            admin_users.add(user.id)
+
+    if user_id not in admin_users:
+        return await message.reply_text('Only admins can use this command.')
+
     await connection.set(chat_id, role_text)
 
     role_db = await get_role(chat_id)
