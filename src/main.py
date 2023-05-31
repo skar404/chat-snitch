@@ -22,6 +22,8 @@ async def command_pin(client: Client, message: Message):
         message.chat.id,
         "ChatSnitch is a chat management bot that automatically sends chat rules to new members "
         "and approves their participation."
+        "\nCommands:"
+        "\n/role - all chat role"
         "\n\nIf you have questions, ideas, want to help, or found a bug/typo, "
         "\nwrite to: @denis_malin",
         reply_markup=InlineKeyboardMarkup(
@@ -50,7 +52,8 @@ async def inline_query(client, query):
                 user_id=from_user,
             )
         except UserAlreadyParticipant:
-            log.error('UserAlreadyParticipant chat_id=%s name=%s new_user=%s', chat_id, query.message.chat.title, from_user)
+            log.error('UserAlreadyParticipant chat_id=%s name=%s new_user=%s', chat_id, query.message.chat.title,
+                      from_user)
             await query.answer('You are already in this chat!')
         log.info('accept new user chat_id=%s name=%s new_user=%s', chat_id, query.message.chat.title, from_user)
 
@@ -69,6 +72,15 @@ async def role_message_handler(client: Client, message: Message):
             [
                 [InlineKeyboardButton("Accept", callback_data=f"fake:{chat.id}")]
             ])
+    )
+
+
+@app.on_message(filters.command(['role']))
+async def role_message_handler(client: Client, message: Message):
+    chat = message.chat
+    await client.send_message(
+        chat_id=chat.id,
+        text=settings.role_message,
     )
 
 
