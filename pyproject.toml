@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "chat-snitch"
+version = "0.1.0"
+description = ""
+authors = ["Denis Malin <denis@malina.page>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyrogram = "^2.0.106"
+pydantic = "^1.10.8"
+tgcrypto = "^1.2.5"
+uvloop = "^0.17.0"
+python-dotenv = "^1.0.0"
+
