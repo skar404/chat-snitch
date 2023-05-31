@@ -39,7 +39,7 @@ async def command_pin(client: Client, message: Message):
         "ChatSnitch is a chat management bot that automatically sends chat rules to new members "
         "and approves their participation."
         "\nCommands:"
-        "\n/set_role - set chat role"
+        "\n/set_role <New role> - set chat role (only admin and chat)"
         "\n/role - all chat role"
         "\n\nIf you have questions, ideas, want to help, or found a bug/typo, "
         "\nwrite to: @denis_malin",

@@ -13,9 +13,8 @@ class Settings(BaseSettings):
     redis_db: int = 0
 
     role_message = (
-        "Hi! We have some roles:"
-        "\n-role 1"
-        "\n-role 2"
+        "Hi, is a base chat role.\n"
+        "You need use command /set_role to change it.\n"
     )
 
     class Config:
