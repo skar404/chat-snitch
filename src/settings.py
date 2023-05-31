@@ -8,6 +8,10 @@ class Settings(BaseSettings):
 
     is_memory: bool = True
 
+    redis_host: str = 'localhost'
+    redis_port: int = 6370
+    redis_db: int = 0
+
     role_message = (
         "Hi! We have some roles:"
         "\n-role 1"

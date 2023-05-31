@@ -1,3 +1,4 @@
+import redis.asyncio as redis
 import uvloop
 from pyrogram import Client, idle, filters
 from pyrogram.errors import UserAlreadyParticipant
@@ -14,6 +15,20 @@ app = Client(
     bot_token=settings.token,
     in_memory=settings.is_memory,
 )
+connection = redis.Redis(
+    host=settings.redis_host,
+    port=settings.redis_port,
+    db=settings.redis_db,
+    auto_close_connection_pool=False,
+)
+
+
+async def get_role(chat_id: int):
+    role_in_db = await connection.get(chat_id)
+    if not role_in_db:
+        return settings.role_message
+
+    return role_in_db.decode()
 
 
 @app.on_message(filters.command(['start', 'help']))
@@ -57,7 +72,7 @@ async def inline_query(client, query):
             await query.answer('You are already in this chat!')
         log.info('accept new user chat_id=%s name=%s new_user=%s', chat_id, query.message.chat.title, from_user)
 
-    await query.message.edit_text(settings.role_message, reply_markup=None)
+    await query.message.edit_text(await get_role(chat_id), reply_markup=None)
     await query.answer('We accepted you!')
 
 
@@ -67,7 +82,7 @@ async def role_message_handler(client: Client, message: Message):
     log.info('role_message_handler chat_id=%s name=%s', chat.id, chat.title)
     await client.send_message(
         chat_id=chat.id,
-        text=settings.role_message,
+        text=await get_role(chat.id),
         reply_markup=InlineKeyboardMarkup(
             [
                 [InlineKeyboardButton("Accept", callback_data=f"fake:{chat.id}")]
@@ -77,10 +92,24 @@ async def role_message_handler(client: Client, message: Message):
 
 @app.on_message(filters.command(['role']))
 async def role_message_handler(client: Client, message: Message):
-    chat = message.chat
+    chat_id = message.chat.id
     await client.send_message(
-        chat_id=chat.id,
-        text=settings.role_message,
+        chat_id=chat_id,
+        text=await get_role(chat_id),
+    )
+
+
+@app.on_message(filters.command(['sed_role']))
+async def role_message_handler(client: Client, message: Message):
+    chat_id = message.chat.id
+
+    role_text = message.text[len('/sed_role '):]
+    await connection.set(chat_id, role_text)
+
+    role_db = await get_role(chat_id)
+    await client.send_message(
+        chat_id=chat_id,
+        text=f"New role: \n{role_db}",
     )
 
 
@@ -93,7 +122,7 @@ async def join_handler(client: Client, message: Message):
 
     await client.send_message(
         chat_id=from_user,
-        text=settings.role_message,
+        text=await get_role(chat_id),
         reply_markup=InlineKeyboardMarkup(
             [
                 [InlineKeyboardButton("Accept", callback_data=f"accept:{chat_id}")]
@@ -104,11 +133,18 @@ async def join_handler(client: Client, message: Message):
 async def bot():
     log.info('start app')
 
+    await connection.ping()
+    log.info('ping redis is complete')
+
     await app.start()
     log.info('start bot')
     await idle()
     await app.stop()
     log.info('stop app')
+
+    await connection.close()
+    # Or: await connection.close(close_connection_pool=False)
+    await connection.connection_pool.disconnect()
 
 
 if __name__ == '__main__':
