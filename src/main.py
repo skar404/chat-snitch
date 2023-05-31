@@ -19,8 +19,9 @@ app = Client(
 async def command_pin(client: Client, message: Message):
     await client.send_message(
         message.chat.id,
-        "TODO add read me"
-        "If you have questions, ideas, want to help, or found a bug/typo, "
+        "ChatSnitch is a chat management bot that automatically sends chat rules to new members "
+        "and approves their participation."
+        "\n\nIf you have questions, ideas, want to help, or found a bug/typo, "
         "\nwrite to: @denis_malin",
         reply_markup=InlineKeyboardMarkup(
             [
@@ -51,12 +52,6 @@ async def inline_query(client, query):
         log.info('accept new user chat_id=%s name=%s new_user=%s', chat_id, query.message.chat.title, from_user)
 
     await query.message.edit_text(settings.role_message, reply_markup=None)
-    await client.send_message(
-        chat_id=query.message.chat.id,
-        text='We accepted you!',
-        reply_to_message_id=query.message.id,
-        disable_notification=True,
-    )
     await query.answer('We accepted you!')
 
 
