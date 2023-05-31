@@ -101,7 +101,7 @@ async def role_message_handler(client: Client, message: Message):
     )
 
 
-@app.on_message(filters=[filters.chat, filters.command(['set_role'])])
+@app.on_message(filters=[filters.command(['set_role'])])
 async def role_message_handler(client: Client, message: Message):
     chat_id = message.chat.id
     user_id = message.from_user.id
