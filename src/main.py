@@ -1,5 +1,6 @@
 import uvloop
 from pyrogram import Client, idle, filters
+from pyrogram.errors import UserAlreadyParticipant
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InlineQuery, Message
 
 from settings import settings
@@ -39,16 +40,18 @@ async def pong_handler(_client: Client, message: Message):
 
 @app.on_callback_query()
 async def inline_query(client, query):
-    log.info('accept query=%s', query)
-
     command, chat_id = query.data.split(':')
     if command == 'accept':
         from_user = query.from_user.id
 
-        await client.approve_chat_join_request(
-            chat_id=chat_id,
-            user_id=from_user,
-        )
+        try:
+            await client.approve_chat_join_request(
+                chat_id=chat_id,
+                user_id=from_user,
+            )
+        except UserAlreadyParticipant:
+            log.error('UserAlreadyParticipant chat_id=%s name=%s new_user=%s', chat_id, query.message.chat.title, from_user)
+            await query.answer('You are already in this chat!')
         log.info('accept new user chat_id=%s name=%s new_user=%s', chat_id, query.message.chat.title, from_user)
 
     await query.message.edit_text(settings.role_message, reply_markup=None)
