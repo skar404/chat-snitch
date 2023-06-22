@@ -54,7 +54,7 @@ async def command_pin(client: Client, message: Message):
 async def pong_handler(_client: Client, message: Message):
     chat = message.chat
     log.info('pong_handler chat_id=%s name=%s', chat.id, chat.title)
-    await message.reply_text('pong')
+    await message.reply_text('pong', disable_notification=True)
 
 
 @app.on_callback_query()
@@ -88,7 +88,8 @@ async def role_message_handler(client: Client, message: Message):
         reply_markup=InlineKeyboardMarkup(
             [
                 [InlineKeyboardButton("Accept", callback_data=f"fake:{chat.id}")]
-            ])
+            ]),
+        disable_notification=True,
     )
 
 
@@ -98,6 +99,7 @@ async def role_message_handler(client: Client, message: Message):
     await client.send_message(
         chat_id=chat_id,
         text=await get_role(chat_id),
+        disable_notification=True,
     )
 
 
@@ -129,6 +131,7 @@ async def role_message_handler(client: Client, message: Message):
     await client.send_message(
         chat_id=chat_id,
         text=f"New role: \n{role_db}",
+        disable_notification=True,
     )
 
 
